@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "model-card-api"
+version = "0.1.0"
+description = "A tested FastAPI prediction service with health, model-card, prediction, and simple feature-attribution endpoints."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["fastapi>=0.110", "uvicorn>=0.29", "numpy>=1.26", "scikit-learn>=1.4"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

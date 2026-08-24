@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from main import app
+from model_card_api.main import app
 
 client = TestClient(app)
 
@@ -19,7 +19,9 @@ def test_prediction_and_explanation_have_stable_contracts():
     explanation = client.post("/explain", json=payload)
     assert prediction.status_code == 200
     assert prediction.json()["label"] in {"ready", "needs_support"}
+    assert prediction.json()["confidence_band"] in {"low", "moderate", "high"}
     assert set(explanation.json()["feature_contributions"]) == {"study_hours", "attendance_rate", "practice_sessions"}
+    assert explanation.json()["decision_threshold"] == .5
 
 
 def test_input_validation_rejects_impossible_values():

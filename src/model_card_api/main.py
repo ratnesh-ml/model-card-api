@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from model import MODEL_CARD, FEATURE_NAMES, explain, predict
+from .model import MODEL_CARD, FEATURE_NAMES, explain, predict
 
 app = FastAPI(title="Model Card API", version=MODEL_CARD["version"])
 

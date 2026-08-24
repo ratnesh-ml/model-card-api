@@ -14,6 +14,8 @@ MODEL_CARD = {
     "features": FEATURE_NAMES,
     "intended_use": "Learning how to expose a model with a documented API contract",
     "not_intended_for": "Real academic decisions, grading, admissions, or student intervention",
+    "decision_threshold": 0.5,
+    "confidence_bands": {"low": "0.40-0.60", "moderate": "0.20-0.40 or 0.60-0.80", "high": "below 0.20 or above 0.80"},
     "limitations": ["Synthetic training data", "Small feature set", "No causal interpretation"],
 }
 
@@ -33,10 +35,24 @@ def build_model() -> Pipeline:
 MODEL = build_model()
 
 
+def confidence_band(probability: float) -> str:
+    """Describe how close a probability is to the decision boundary."""
+    if .40 <= probability <= .60:
+        return "low"
+    if .20 <= probability < .40 or .60 < probability <= .80:
+        return "moderate"
+    return "high"
+
+
 def predict(features: dict[str, float]) -> dict[str, object]:
     values = np.array([[features[name] for name in FEATURE_NAMES]], dtype=float)
     probability = float(MODEL.predict_proba(values)[0, 1])
-    return {"label": "ready" if probability >= .5 else "needs_support", "probability": round(probability, 4), "features": features}
+    return {
+        "label": "ready" if probability >= .5 else "needs_support",
+        "probability": round(probability, 4),
+        "confidence_band": confidence_band(probability),
+        "features": features,
+    }
 
 
 def explain(features: dict[str, float]) -> dict[str, object]:
@@ -44,4 +60,10 @@ def explain(features: dict[str, float]) -> dict[str, object]:
     classifier = MODEL.named_steps["classifier"]
     scaled = MODEL.named_steps["scale"].transform(values)[0]
     contributions = scaled * classifier.coef_[0]
-    return {"base_signal": float(classifier.intercept_[0]), "feature_contributions": {name: round(float(value), 4) for name, value in zip(FEATURE_NAMES, contributions)}}
+    probability = float(MODEL.predict_proba(values)[0, 1])
+    return {
+        "base_signal": float(classifier.intercept_[0]),
+        "decision_threshold": .5,
+        "confidence_band": confidence_band(probability),
+        "feature_contributions": {name: round(float(value), 4) for name, value in zip(FEATURE_NAMES, contributions)},
+    }
