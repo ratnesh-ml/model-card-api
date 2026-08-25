@@ -1,0 +1,24 @@
+name: Model-service bug
+description: Report a reproducible validation, health, prediction, confidence, model-card, explainability, API, or documentation issue.
+title: "bug: "
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed API behavior
+      description: Include a safe request body, endpoint, response status, and the result you observed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Scope check
+      options:
+        - label: I did not include private records, credentials, or use the example API for a real decision.
+          required: true
