@@ -2,21 +2,30 @@
 
 [![CI](https://github.com/ratnesh-ml/model-card-api/actions/workflows/test.yml/badge.svg)](https://github.com/ratnesh-ml/model-card-api/actions/workflows/test.yml)
 
-> **Portfolio demo:** [Open the Ratnesh ML Lab showcase](https://ratnesh-ml-lab.vercel.app)
-A small FastAPI service that shows what I think an ML endpoint should expose besides a prediction. It includes health status, model metadata, input validation, predictions, and a simple feature-contribution response.
+I built this small FastAPI service after noticing that many beginner ML projects end at `model.predict()`. I wanted to practise the less visible work around a prediction: declaring what the model is for, validating inputs, exposing version and health information, and making a simple explanation available to the caller.
 
-The training data is synthetic and the example task is intentionally harmless. The value of the project is the service contract and documentation, not the accuracy of a made-up student outcome model.
+The model and data are intentionally synthetic. This is not a student-outcome predictor, and I do not present it as one. The project is my compact exercise in designing an inspectable ML service contract.
 
-## Endpoints
+## At a glance
 
-| Method | Route | Purpose |
+| I wanted to practise | What I implemented |
+| --- | --- |
+| Treating a model as a service | A typed FastAPI surface with health, model-card, prediction, and explanation routes. |
+| Making assumptions visible | A `/model-card` endpoint with intended use, feature notes, and limitations. |
+| Avoiding opaque inputs | Validation for the three input fields before a prediction is made. |
+| Explaining a simple baseline honestly | Linear feature contributions rather than a misleading claim of causal explanation. |
+| Keeping the work reproducible | Tests, a Dockerfile, and a GitHub Actions check. |
+
+## The API contract
+
+| Method | Route | What I expect it to do |
 | --- | --- | --- |
-| GET | `/health` | Liveness and model version |
-| GET | `/model-card` | Intended use, limitations, and features |
-| POST | `/predict` | Validated prediction response |
-| POST | `/explain` | Linear feature contribution details |
+| `GET` | `/health` | Report liveness and the model version. |
+| `GET` | `/model-card` | Show intended use, limitations, and the available features. |
+| `POST` | `/predict` | Return a validated demo prediction and confidence band. |
+| `POST` | `/explain` | Return linear feature-contribution details for that prediction. |
 
-## Run locally
+## Run it locally
 
 ```bash
 python -m venv .venv
@@ -25,35 +34,34 @@ pip install -e . pytest
 python -m model_card_api
 ```
 
-Then open `http://127.0.0.1:8000/docs` or try:
+Open `http://127.0.0.1:8000/docs`, or check the basic contract directly:
 
 ```bash
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/model-card
-curl -X POST http://127.0.0.1:8000/predict       -H 'content-type: application/json'       -d '{"study_hours":5,"attendance_rate":0.8,"practice_sessions":4}'
+curl -X POST http://127.0.0.1:8000/predict \
+  -H 'content-type: application/json' \
+  -d '{"study_hours":5,"attendance_rate":0.8,"practice_sessions":4}'
+pytest -q
 ```
 
-## Run with Docker
+To use the container path instead:
 
 ```bash
 docker build -t model-card-api .
 docker run --rm -p 8000:8000 model-card-api
 ```
 
-## Why this is portfolio-worthy
+## Design decision I wanted to make visible
 
-Many beginner ML projects stop at `model.predict()`. This one makes the boundary visible: the API has a health route, a model card, a version, typed inputs, tests, a Dockerfile, and an explicit warning against real academic decisions.
+I kept the example deliberately narrow because a clean service boundary is more useful here than a flashy accuracy claim. Health, model metadata, input validation, prediction, and explanation are different responsibilities; putting them behind explicit routes made me think about how another developer would inspect the system before trusting it.
 
-## Limitations
+## What this is not
 
-The model is trained on a tiny synthetic dataset and is not suitable for real decisions. The explanation is a linear model contribution, not a causal explanation. A production iteration would add monitoring, authentication, a real validated dataset, calibration checks, and a more careful fairness review.
+The classifier is trained on a tiny synthetic dataset. Its confidence band is illustrative, and the explanation is a linear contribution rather than causal evidence. It is not suitable for academic, hiring, or any real-person decision.
 
+If I extended it, I would start with a permission-cleared dataset and then add calibration checks, monitoring, authentication, fairness evaluation, and a reviewed deployment policy.
 
-## Recent depth improvements
+## Verification and license
 
-Predictions now expose an interpretable confidence band, while the model card and explanation response expose the decision threshold. The educational safety boundary remains explicit: the synthetic classifier is not for academic decisions. GitHub Actions runs the API tests continuously.
-
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+`pytest -q` runs the local regression suite. GitHub Actions runs the test workflow on pushes and pull requests. The project is MIT licensed; see [LICENSE](LICENSE).
